@@ -163,4 +163,4 @@ jobs:
         env:
           DB_USER: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: ansible-playbook -i ansible/inventory.ini ansible/playbook.yaml
+        run: ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
