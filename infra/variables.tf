@@ -7,13 +7,13 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for tagging"
   type        = string
-  default     = "devops-final-project-2" # <-- Make this unique
+  default     = "devops-final-project" # <-- Make this unique
 }
 
 variable "environment" {
   description = "Environment (dev/prod)"
   type        = string
-  default     = "test" # <-- Make this unique
+  default     = "test" 
 }
 
 variable "vpc_cidr" {
