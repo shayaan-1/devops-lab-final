@@ -7,13 +7,13 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for tagging"
   type        = string
-  default     = "devops-final-project"
+  default     = "devops-final-project-2" # <-- Make this unique
 }
 
 variable "environment" {
   description = "Environment (dev/prod)"
   type        = string
-  default     = "dev"
+  default     = "test" # <-- Make this unique
 }
 
 variable "vpc_cidr" {
@@ -61,7 +61,7 @@ variable "db_password" {
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
-  default     = "devops-eks-cluster"
+  default     = "devops-eks-cluster-2" # <-- Make this unique
 }
 
 variable "node_instance_type" {
