@@ -9,8 +9,8 @@ docker_image: "shayaan1234/flask-redis-celery:latest"
 # Database (from Terraform RDS output)
 db_host: "devops-final-project-dev-postgres.cu3mwcamepjb.us-east-1.rds.amazonaws.com:5432"
 db_name: "myappdb"
-db_user: "admin"
-db_password: "Secure123"
+db_user: "{{ lookup('env', 'DB_USER') }}"
+db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
 
 # Redis
 redis_host: "redis-service"

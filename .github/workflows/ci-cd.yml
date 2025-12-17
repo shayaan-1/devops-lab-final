@@ -156,4 +156,7 @@ jobs:
       - name: Install Ansible
         run: pip install ansible
       - name: Run Ansible Playbook
+        env:
+          DB_USER: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: ansible-playbook -i ansible/inventory.ini ansible/playbook.yaml
