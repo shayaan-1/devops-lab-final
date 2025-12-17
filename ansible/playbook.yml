@@ -1,0 +1,31 @@
+---
+- name: Configure EKS Cluster and Deploy Application
+  hosts: local
+  gather_facts: yes
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Update kubeconfig for EKS
+      shell: |
+        aws eks update-kubeconfig --name {{ eks_cluster_name }} --region {{ aws_region }}
+      register: kubeconfig_output
+      changed_when: "'Added new context' in kubeconfig_output.stdout"
+
+    - name: Display kubeconfig update result
+      debug:
+        msg: "{{ kubeconfig_output.stdout }}"
+
+    - name: Test kubectl connectivity
+      kubernetes.core.k8s_cluster_info:
+      register: cluster_info
+
+    - name: Display cluster info
+      debug:
+        msg: "Connected to EKS cluster: {{ eks_cluster_name }}"
+
+    - name: Create application namespace
+      kubernetes.core.k8s:
+        name: "{{ app_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present

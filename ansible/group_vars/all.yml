@@ -1,0 +1,20 @@
+---
+aws_region: "us-east-1"
+eks_cluster_name: "devops-eks-cluster"
+
+app_namespace: "dev"
+app_name: "my-app"
+docker_image: "shayaan1234/flask-redis-celery:latest"
+
+# Database (from Terraform RDS output)
+db_host: "devops-final-project-dev-postgres.cu3mwcamepjb.us-east-1.rds.amazonaws.com:5432"
+db_name: "myappdb"
+db_user: "admin"
+db_password: "Secure123"
+
+# Redis
+redis_host: "redis-service"
+redis_port: 6379
+
+# Kubernetes manifests path (optional)
+k8s_manifests_path: "../k8s"
