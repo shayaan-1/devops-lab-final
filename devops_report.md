@@ -1,135 +1,248 @@
-**DevOps Mid Exam**
+# Cloud-Native DevOps Project
 
-**DevOps Documentation -- Flask + Celery Project**
+## Project Overview
 
-**1. Technologies Used**
+This project is a cloud-native application that includes:
 
--   **Backend Framework:** Flask 2.3
+- **Backend application** - Core application logic and APIs
+- **Database** - PostgreSQL for persistent data storage
+- **Cache/Message Queue** - Redis or RabbitMQ for caching and message brokering
+- **Containerization** - Docker-based containerization
+- **Orchestration** - Kubernetes (EKS/Minikube) for container orchestration
+- **CI/CD Pipeline** - Fully automated pipeline with Jenkins/GitHub Actions
+- **Monitoring** - Grafana & Prometheus for observability
 
--   **Task Queue:** Celery 5.3
+## 1. Running Locally (Docker Compose)
 
--   **Message Broker & Result Backend:** Redis 6.2
+### Build Docker Images
+docker-compose build
 
--   **Database:** PostgreSQL 15
+### Start Services
+docker-compose up -d
 
--   **ORM:** SQLAlchemy 3.1
+### Verify Services
+docker-compose ps
 
--   **Email:** Flask-Mail
+### Access the Application
+- Application: http://localhost:<app-port>
+- PostgreSQL: localhost:5432
+- Redis/RabbitMQ: Based on configured ports
 
--   **Containerization:** Docker & Docker Compose
+**Screenshot: Docker Compose Services Running**
+(Placeholder for Docker Compose screenshot)
 
--   **CI/CD Platform:** GitHub Actions
+## 2. Running via Kubernetes
 
--   **Code Quality Tools:** Flake8 (Linting), Bandit (Security Scan)
+### Apply Kubernetes Manifests
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/secret.yaml
 
--   **Testing Framework:** Python unittest
+### Check Pods and Services
+kubectl get pods -n dev
+kubectl get svc -n dev
 
--   **Environment Management:** .env files and GitHub Secrets
+**Screenshot: Kubernetes Resources**
+(Placeholder for kubectl output screenshot)
 
-**2. Pipeline Design**
+## 3. Infrastructure Setup (Terraform)
 
-**CI/CD Workflow Overview**
+### Initialize Terraform
+cd infra/
+terraform init
 
-**Trigger:** On any push or pull request → runs full CI pipeline\
-**Jobs:**
+### Apply Terraform Configuration
+terraform apply -auto-approve
 
-1.  **Build & Install**: Sets up Python 3.9, installs dependencies.
+### Verify Resources
+- Check created resources on AWS Console
+- Validate network configurations
+- Confirm security groups and IAM roles
 
-2.  **Lint & Security Scan**: Flake8 for code style, Bandit for
-    security.
+**Screenshot: AWS Resources**
+(Placeholder for AWS resources screenshot)
 
-3.  **Test (with Postgres)**: Runs unit & integration tests using an
-    ephemeral Postgres service.
+### Tear Down Infrastructure
+terraform destroy -auto-approve
 
-4.  **Docker Build & Push**: Builds Docker image and pushes to
-    DockerHub.
+**Screenshot: Terraform Destroy**
+(Placeholder for terraform destroy screenshot)
 
-5.  **Deploy (Main branch only)**: Deployment step triggered on main
-    branch.
+## 4. Configuration Management (Ansible)
 
-**Pipeline Flow Diagram (conceptual)**:
+### Run Ansible Playbook
+ansible-playbook -i ansible/hosts.ini ansible/playbook.yaml
 
-![Github architecture image](media/image.png)
+### Verify Deployment
+- Check application health endpoints
+- Validate service connectivity
+- Confirm configuration consistency
 
-**3. Secret Management Strategy**
+**Screenshot: Ansible Playbook Execution**
+(Placeholder for Ansible playbook screenshot)
 
--   **Local development:** .env file (not committed to GitHub)
+## 5. CI/CD Pipeline
 
--   MAIL_USERNAME=youremail@gmail.com
+### Automated Pipeline Stages:
+1. **Code Checkout** - Pull latest code from repository
+2. **Build** - Docker image creation
+3. **Test** - Unit and integration tests
+4. **Push** - Container registry upload
+5. **Provision** - Terraform infrastructure deployment
+6. **Deploy** - Kubernetes/Ansible application deployment
+7. **Smoke Tests** - Post-deployment validation
 
--   MAIL_PASSWORD=yourpassword
+### Pipeline Access:
+- **Jenkins**: http://<jenkins-url>:8080
+- **GitHub Actions**: Repository → Actions tab
 
--   **CI/CD (GitHub Actions):** GitHub Secrets
+**Screenshot: CI/CD Pipeline**
+(Placeholder for CI/CD pipeline screenshot)
 
-    -   DOCKERHUB_USERNAME
+## 6. Monitoring
 
-    -   DOCKERHUB_TOKEN
+### Prometheus Configuration
+- Collects metrics from application, database, and nodes
+- Scrapes metrics endpoints every 15 seconds
+- Stores time-series data for historical analysis
 
--   **Reasoning:** Keeps sensitive credentials **out of code
-    repository**, ensures **secure injection into container
-    environment**.
+### Grafana Dashboards
+- Application performance metrics
+- Database query performance
+- Infrastructure resource utilization
+- Custom business metrics
 
-**4. Testing Process**
+**Access Dashboards:**
+- Grafana: http://<grafana-url>:3000
+- Prometheus: http://<prometheus-url>:9090
 
--   **Unit Testing:**
+**Screenshot: Grafana Dashboard**
+(Placeholder for Grafana dashboard screenshots)
 
-    -   Python unittest framework
+---
 
-    -   Tests include:
+# DevOps Report
 
-        -   Route accessibility (GET /)
+## 2.1 Technologies Used
 
-        -   Database model correctness (EmailRecord)
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| Containerization | Docker, Docker Compose | Application packaging and local development |
+| Orchestration | Kubernetes (EKS/Minikube) | Container orchestration and management |
+| Infrastructure as Code | Terraform | Cloud resource provisioning |
+| Configuration Management | Ansible | Server configuration and deployment |
+| CI/CD | Jenkins / GitHub Actions | Automated build and deployment pipeline |
+| Monitoring | Prometheus & Grafana | Observability and alerting |
+| Databases | PostgreSQL | Relational data storage |
+| Caching/Queuing | Redis / RabbitMQ | Performance optimization and message processing |
 
--   **Database:**
+## 2.2 Pipeline & Infrastructure Diagram
 
-    -   Uses **in-memory SQLite** for isolated tests
-        (sqlite:///:memory:)
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Developer     │    │   CI/CD         │    │   Kubernetes    │
+│   Commits Code  │───▶│   Pipeline      │───▶│   Cluster       │
+└─────────────────┘    │   (Jenkins/     │    │   (EKS)         │
+                       │   GitHub Actions)│    └─────────────────┘
+                       └─────────────────┘            │
+                               │                      │
+                       ┌───────▼───────┐    ┌────────▼────────┐
+                       │   Terraform   │    │   Monitoring    │
+                       │   Provisioning│    │   (Prometheus/  │
+                       └───────────────┘    │   Grafana)      │
+                                            └─────────────────┘
 
-    -   For integration tests in CI: ephemeral **PostgreSQL container**
-        via GitHub Actions services
+**Diagram:**
+(Placeholder for detailed architecture diagram)
 
--   **Linting & Security Scan:**
+## 2.3 Secret Management Strategy
 
-    -   Flake8 → Python code style
+### Approach
+1. **No Hardcoded Secrets** - Secrets are never committed to version control
+2. **Kubernetes Secrets** - For containerized deployments
+3. **Environment Variables** - Injected via ConfigMap or Secret objects
+4. **Ansible Vault** - Optional for local deployment secrets (encrypted)
+5. **AWS Secrets Manager** - For production secrets (if using AWS)
 
-    -   Bandit → security vulnerabilities scanning
+### Implementation
+# Example Kubernetes Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+type: Opaque
+data:
+  db-password: <base64-encoded-password>
+  api-key: <base64-encoded-api-key>
 
--   **CI Pipeline Integration:**
+## 2.4 Monitoring Strategy
 
-    -   All tests run automatically on every push or PR
+### Metrics Collection
+- **Application Metrics**: Response times, error rates, request volumes
+- **Database Metrics**: Connection counts, query performance, storage usage
+- **Infrastructure Metrics**: CPU, memory, disk I/O, network traffic
+- **Business Metrics**: User activity, transaction volumes, conversion rates
 
-    -   Pipeline fails if any critical test fails (except Bandit
-        warnings, which can be non-blocking)
+### Alerting Configuration
+- CPU usage > 80% for 5 minutes
+- Memory usage > 85%
+- Application error rate > 5%
+- Database connection failures
+- Service downtime detection
 
-**5. Lessons Learned**
+## 2.5 Lessons Learned
 
-1.  **Environment Flexibility:**
+### Key Insights
+1. **Containerization Benefits**
+   - Simplified dependency management
+   - Consistent environments across development and production
+   - Faster deployment cycles
 
-    -   Using environment variables and .env files ensures code works
-        across **local, CI/CD, and production** environments.
+2. **Kubernetes Advantages**
+   - Automatic scaling based on load
+   - Self-healing capabilities
+   - Efficient resource utilization
+   - Namespace isolation for multi-tenancy
 
-2.  **Asynchronous Task Handling:**
+3. **Infrastructure as Code (Terraform)**
+   - Reproducible infrastructure provisioning
+   - Version-controlled infrastructure changes
+   - Easy rollback capabilities
+   - Reduced configuration drift
 
-    -   Celery + Redis decouples long-running tasks from Flask, making
-        the application more responsive.
+4. **CI/CD Automation**
+   - Reduced human error in deployments
+   - Faster time-to-market for features
+   - Consistent deployment processes
+   - Automated testing integration
 
-3.  **Containerization:**
+5. **Observability Importance**
+   - Proactive issue detection
+   - Performance optimization insights
+   - Capacity planning data
+   - Improved troubleshooting capabilities
 
-    -   Docker Compose simplifies **multi-container orchestration** for
-        development and production.
+### Best Practices Established
+1. Implement comprehensive logging from day one
+2. Use health checks and readiness probes in Kubernetes
+3. Maintain separate configuration for different environments
+4. Implement blue-green deployments for zero-downtime updates
+5. Regularly review and update security policies
 
-4.  **CI/CD Integration:**
+### Challenges Overcome
+1. **Network Configuration** - Managed service discovery and internal communication
+2. **State Management** - Handled database migrations and persistent storage
+3. **Secret Rotation** - Implemented automated secret rotation procedures
+4. **Monitoring Overhead** - Balanced observability with performance impact
 
-    -   GitHub Actions allows **automated testing, linting, building,
-        and deployment**, reducing manual errors.
+## Future Improvements
+1. Implement service mesh (Istio/Linkerd) for advanced traffic management
+2. Add distributed tracing (Jaeger/Zipkin)
+3. Enhance security scanning in CI/CD pipeline
+4. Implement canary deployments for risk mitigation
+5. Add cost optimization monitoring and alerts
 
-5.  **Secret Management:**
-
-    -   Using GitHub Secrets and .env files prevents credentials from
-        leaking into version control.
-
-6.  **Testing Best Practices:**
-
-    -   Isolated unit tests (SQLite) and integration tests (Postgres)
-        ensure reliability without affecting production data.
+---
+*Last Updated: [Current Date]*
+*Maintained by: DevOps Team*
