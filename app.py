@@ -10,10 +10,12 @@ from flask import (
     redirect,
     url_for,
     jsonify,
+    Response
 )
 from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 from celery import Celery
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'top-secret!'
@@ -30,7 +32,6 @@ app.config['MAIL_DEFAULT_SENDER'] = 'flask@example.com'
 
 # --------------------------------------------------------------------
 # PostgreSQL configuration
-# Priority → Railway > GitHub Actions > Local Docker
 # --------------------------------------------------------------------
 db_url = (
     os.getenv('DATABASE_URL')
@@ -45,7 +46,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # --------------------------------------------------------------------
 # Celery (Redis) configuration
-# Priority → Railway > Local Docker
 # --------------------------------------------------------------------
 redis_url = os.getenv('REDIS_URL') or 'redis://redis:6379/0'
 app.config['CELERY_BROKER_URL'] = redis_url
@@ -61,6 +61,11 @@ db = SQLAlchemy(app)
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
+# --------------------------------------------------------------------
+# Prometheus metrics
+# --------------------------------------------------------------------
+EMAILS_SENT = Counter('emails_sent_total', 'Total number of emails sent')
+LONG_TASKS = Counter('long_tasks_total', 'Total number of long tasks executed')
 
 # --------------------------------------------------------------------
 # Database model
@@ -71,7 +76,6 @@ class EmailRecord(db.Model):
     subject = db.Column(db.String(200), nullable=False)
     body = db.Column(db.Text, nullable=False)
     sent_at = db.Column(db.DateTime, server_default=db.func.now())
-
 
 # --------------------------------------------------------------------
 # Celery tasks
@@ -94,7 +98,7 @@ def send_async_email(email_data):
         db.session.add(record)
         db.session.commit()
         mail.send(msg)
-
+        EMAILS_SENT.inc()  # increment Prometheus metric
 
 @celery.task(bind=True)
 def long_task(self):
@@ -118,13 +122,13 @@ def long_task(self):
         )
         time.sleep(1)
 
+    LONG_TASKS.inc()  # increment Prometheus metric
     return {
         'current': 100,
         'total': 100,
         'status': 'Task completed!',
         'result': 59,
     }
-
 
 # --------------------------------------------------------------------
 # Routes
@@ -140,10 +144,7 @@ def index():
     email_data = {
         'subject': 'Hello from Flask',
         'to': email,
-        'body': (
-            'This is a test email sent from a background '
-            'Celery task.'
-        ),
+        'body': 'This is a test email sent from a background Celery task.',
     }
 
     if request.form['submit'] == 'Send':
@@ -155,14 +156,12 @@ def index():
 
     return redirect(url_for('index'))
 
-
 @app.route('/longtask', methods=['POST'])
 def longtask():
     task = long_task.apply_async()
     return jsonify({}), 202, {
         'Location': url_for('taskstatus', task_id=task.id),
     }
-
 
 @app.route('/status/<task_id>')
 def taskstatus(task_id):
@@ -192,9 +191,15 @@ def taskstatus(task_id):
         }
     return jsonify(response)
 
+# --------------------------------------------------------------------
+# Prometheus metrics endpoint
+# --------------------------------------------------------------------
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 # --------------------------------------------------------------------
 # Entry point
 # --------------------------------------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0',port=8080)
